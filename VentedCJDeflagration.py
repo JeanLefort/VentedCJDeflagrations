@@ -91,50 +91,51 @@ A4A3 = 0.1
 
 
 # GENERAL FUNCTIONS ============================================================
-
 def Post_Shock_CJdef(Ms):
-	"""
-		Returns properties of the flow after the CJ deflagration
-		for a given incident shock Mach number
-	"""
-		
-	# Shocked state
-	Dshock = Ms * c1
-	print "Dshock = %-12.5f  -->  Mshock = %-12.5f" %(Dshock, Ms)
+    """
+    Returns properties of the flow after the CJ deflagration
+    for a given incident shock Mach number
+    """
 
-	gas2 = ct.Solution(mech)
-	gas2 = PostShock_fr(Dshock, P1, T1, mix, mech)
-	
-	rho2 = gas2.density
-	P2 = gas2.P
-	T2 = gas2.T
+    # Shocked state
+    Dshock = Ms * c1
+    print(f"Dshock = {Dshock:<12.5f}  -->  Mshock = {Ms:<12.5f}")
 
-	gamma2 = gas2.cp / gas2.cv
-	rgas2 = ct.gas_constant / gas2.mean_molecular_weight
-	
-	u2 = Dshock * rho1/rho2
-	U2 = Dshock - u2	
+    gas2 = ct.Solution(mech)
+    gas2 = PostShock_fr(Dshock, P1, T1, mix, mech)
 
+    rho2 = gas2.density
+    P2 = gas2.P
+    T2 = gas2.T
 
-	# CJ deflagration state
-	[scj, gas3, m3] = CJ_deflagration(P2, T2, mix, mech, ERRFT = 1e-10, ERRFV = 1e-10)
-	rho3 = gas3.density
-	P3 = gas3.P
-	T3 = gas3.T
-	X3 = gas3.X
-	
-	c3, c3_fr = equilSoundSpeeds(gas3)
-	gas3.TPX = T3, P3, X3
+    gamma2 = gas2.cp / gas2.cv
+    rgas2 = ct.gas_constant / gas2.mean_molecular_weight
 
-	Scj = U2 + scj
-	u3 = scj * rho2/rho3
-	U3 = Scj - u3
-	M3 = U3/c3
-	
-	# Note : Take -U3 instead of U3 because U3 here is < 0, and U3 is used
-	# only for isentropic calculations
-	return gas3, -U3, -M3, Scj
-	
+    u2 = Dshock * rho1 / rho2
+    U2 = Dshock - u2
+
+    # CJ deflagration state
+    scj, gas3, m3 = CJ_deflagration(
+        P2, T2, mix, mech, ERRFT=1e-10, ERRFV=1e-10
+    )
+
+    rho3 = gas3.density
+    P3 = gas3.P
+    T3 = gas3.T
+    X3 = gas3.X
+
+    c3, c3_fr = equilSoundSpeeds(gas3)
+    gas3.TPX = T3, P3, X3
+
+    Scj = U2 + scj
+    u3 = scj * rho2 / rho3
+    U3 = Scj - u3
+    M3 = U3 / c3
+
+    # Note: Take -U3 instead of U3 because U3 here is < 0,
+    # and U3 is used only for isentropic calculations
+    return gas3, -U3, -M3, Scj
+
 
 def Print_Results():
 	"""
