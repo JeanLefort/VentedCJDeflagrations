@@ -127,7 +127,6 @@ def CJspeed2(P1, T1, q, mech):
     
     return [gas,cj_speed]
 
-
 def FHFP_CJ2(gas,gas1,gas2):
 
     """
@@ -223,6 +222,3 @@ if __name__ == "__main__":
         temp = 300.0 + n*100.0
         gas.set(T = temp, P = OneAtm)
         print temp, equilSoundSpeeds(gas)
-
-
-

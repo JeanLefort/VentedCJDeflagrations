@@ -32,7 +32,7 @@ def CJ_calc3(gas, gas1, ERRFT, ERRFV, x, w1_guess=500, T_guess=1000):
     For a reactive discontinuity, this function calculate for a given specific volume 
     (represented by the ratio x = v1/v2), the velocity of the discontinuity and the
     state downstream it.
-    This is equivalent to find the point on the Hugoniot curve and the velocity assocuated
+    This is equivalent to find the point on the Hugoniot curve and the velocity associated
     at a given v2 from a known initial state.
 
     FUNCTION
@@ -65,11 +65,10 @@ def CJ_calc3(gas, gas1, ERRFT, ERRFV, x, w1_guess=500, T_guess=1000):
     while (abs(DT) > ERRFT*T and abs(DW) > ERRFV*w1):
         i = i + 1
         if i == 500:
-            print 'CJ_calc function could not converge after 500 iterations on the Newton-Raphson algorithm.'
-            print "Results given with : abs(DT) - ERRFT*T = %e \t abs(DW) - ERRFW*w1 = %e" \
-                   %(abs(DT) - ERRFT*T, abs(DW) - ERRFV*w1)
+            print('CJ_calc function could not converge after 500 iterations on the Newton-Raphson algorithm.')
+            print("Results given with : abs(DT) - ERRFT*T = %e \t abs(DW) - ERRFW*w1 = %e"
+                   % (abs(DT) - ERRFT*T, abs(DW) - ERRFV*w1))
             break
-            #return
             
         #CALCULATE FH & FP FOR GUESS 1
         [FH,FP] = FHFP_CJ(gas,gas1,w1)
@@ -110,7 +109,7 @@ def CJ_calc3(gas, gas1, ERRFT, ERRFV, x, w1_guess=500, T_guess=1000):
 
     return [gas, w1, T]
     
-def CJspeed3(P1, T1, mix, mech,xmin,xmax,plt_num, ERRFT = 1e-6, ERRFV = 1e-6, w1_guess=500, T_guess=1000):
+def CJspeed3(P1, T1, mix, mech, xmin, xmax, plt_num, ERRFT=1e-6, ERRFV=1e-6, w1_guess=500, T_guess=1000):
     """
 
     CJspeed3
@@ -137,10 +136,10 @@ def CJspeed3(P1, T1, mix, mech,xmin,xmax,plt_num, ERRFT = 1e-6, ERRFV = 1e-6, w1
     #DECLARATIONS
     numsteps = 20;
     maxv = xmax;
-    minv =xmin ;
+    minv = xmin;
 
-    w2 = zeros(numsteps,float)
-    rr = zeros(numsteps,float)
+    w2 = zeros(numsteps, float)
+    rr = zeros(numsteps, float)
 
     gas1 = Solution(mech)
     gas  = Solution(mech)
@@ -149,9 +148,6 @@ def CJspeed3(P1, T1, mix, mech,xmin,xmax,plt_num, ERRFT = 1e-6, ERRFV = 1e-6, w1
     gas.TPX  = T1, P1, mix
     gas1.TPX = T1, P1, mix     
     
-    #INITIALIZE ERROR VALUES & CHANGE VALUES
-    #ERRFT = 1*10**-6;  ERRFV = 1*10**-6;
-
     i = 1;
     T1 = gas1.T;
     P1 = gas1.P;
@@ -174,12 +170,12 @@ def CJspeed3(P1, T1, mix, mech,xmin,xmax,plt_num, ERRFT = 1e-6, ERRFV = 1e-6, w1
         i = 0
         x = minv
         
-		# Calculate several valules of w1 and v1/v2 on the interval [minv;maxv]
-        for i in range (0,numsteps) :
+        # Calculate several values of w1 and v1/v2 on the interval [minv;maxv]
+        for i in range(0, numsteps):
             gas.TPX = T1, P1, mix
         
             # Call subfunction to find speed for a specific ratio of volume
-            [gas,temp,T] = CJ_calc3(gas, gas1, ERRFT, ERRFV, x, w1_guess, T_guess=T_guess)
+            [gas, temp, T] = CJ_calc3(gas, gas1, ERRFT, ERRFV, x, w1_guess, T_guess=T_guess)
             w2[i] = temp 
             rr[i] = gas.density/gas1.density
         
@@ -187,7 +183,7 @@ def CJspeed3(P1, T1, mix, mech,xmin,xmax,plt_num, ERRFT = 1e-6, ERRFV = 1e-6, w1
             x = x + step;
 		
         # Fit the points of graph w1 = f(v1/v2) to a parabola.
-        [a,b,c,R2,SSE,SST] = LSQ_CJspeed(rr,w2)
+        [a, b, c, R2, SSE, SST] = LSQ_CJspeed(rr, w2)
 		
         # Get the locus of maximum(v1/v2) = dnew to be the CJ specific volume.
         dnew = -b/(2.0*a)  
@@ -196,24 +192,24 @@ def CJspeed3(P1, T1, mix, mech,xmin,xmax,plt_num, ERRFT = 1e-6, ERRFV = 1e-6, w1
         minv = dnew - dnew*0.001
         maxv = dnew + dnew*0.001
         
-		# Get the current estimation of CJ-deflagration speed being the maximum of value
+        # Get the current estimation of CJ-deflagration speed being the maximum of value
         # of the parabolic fit.
         cj_speed = a*dnew**2 + b*dnew + c
         
-        # Update the counter and re-run the loop until R2 for parabolla fit small enough.		
+        # Update the counter and re-run the loop until R2 for parabola fit small enough.		
         counter = counter + 1;
         
         # Stop the loop on maximum speed if too much iterations, and warn user.
         if counter > maxcounter:
-            print "\nReached %i iteration on finding maximum flame speed in CJSpeed3 function." %(counter)
-            print "Residual on least-square algorithm R2 = ", R2, "\n"
+            print("\nReached %i iteration on finding maximum flame speed in CJSpeed3 function." % counter)
+            print("Residual on least-square algorithm R2 =", R2, "\n")
             break
         
-    return [cj_speed,R2,dnew]
+    return [cj_speed, R2, dnew]
 
 
 
-def CJ_deflagration(P1, T1, mix, mech, ERRFT = 1e-6, ERRFV = 1e-6):
+def CJ_deflagration(P1, T1, mix, mech, ERRFT=1e-6, ERRFV=1e-6):
     """
 
     CJ_deflagration
@@ -239,13 +235,11 @@ def CJ_deflagration(P1, T1, mix, mech, ERRFT = 1e-6, ERRFV = 1e-6):
     M =  Mach Number
     """
     
-    # Initialize initial gas at  state T1, P1, mix (input)
+    # Initialize initial gas at state T1, P1, mix (input)
     gas1 = ct.Solution(mech)
-    gas1.TPX = T1,P1,mix
+    gas1.TPX = T1, P1, mix
 
     # Estimate CJ-deflagration volume for perfect gas, and volume ratio associated.
-    # This is to be used to find the minimum volume ratio of the interval where to find
-    # the CJ-deflagration volume.
     [gamma1, rgas, Qgas] = perfect_gas_properties(ct.one_atm, 298.15, mix, mech)
     [Dcj_id, Pcj_id, Tcj_id, vcj_id, mflowcj_id] = CJ_deflagration_perfect(P1, T1, gamma1, rgas, Qgas)
     
@@ -260,21 +254,20 @@ def CJ_deflagration(P1, T1, mix, mech, ERRFT = 1e-6, ERRFV = 1e-6):
     # Calculate the constant pressure combustion, that will give the volume of the 
     # post-constant pressure combustion state.
     gas_CP = ct.Solution(mech)
-    gas_CP.TPX = T1,P1,mix    
+    gas_CP.TPX = T1, P1, mix    
     gas_CP.equilibrate('HP')
     
-	# Define the maximum volume ratio of the interval where to find the CJ-deflagration
+    # Define the maximum volume ratio of the interval where to find the CJ-deflagration
     # volume, as the one given for CP-combustion volume (minus 1% for safety).
     xmax = (gas1.v / gas_CP.v) * (1-0.01)
     
     # Call function CJspeed3 to find CJ deflagration velocity and x_cj the
     # volume ratio at the CJ deflagration state
-    # Uses w1_guess = Dcj_id + 50% to favorise convergence from the top
     [D_cj, R2, x_cj] = CJspeed3(P1, T1, mix, mech, xmin, xmax, 0, ERRFT, ERRFV, w1_guess=Dcj_id*1.5, T_guess=Tcj_id*0.8)
     
     # Calculate gas_cj a gas object at CJ deflagration state
     gas_cj  = ct.Solution(mech)
-    gas_cj.TPX  = T1,P1,mix
+    gas_cj.TPX  = T1, P1, mix
     [gas_cj, temp, T_cj] = CJ_calc3(gas_cj, gas1, ERRFT, ERRFV, x_cj, w1_guess=Dcj_id*1.5, T_guess=Tcj_id*0.8)
     
     # Calculate the equilibrium sound speed in the CJ-deflagration state to get the 
@@ -288,17 +281,12 @@ def CJ_deflagration(P1, T1, mix, mech, ERRFT = 1e-6, ERRFV = 1e-6):
     return [D_cj, gas_cj, Mflow_cj]
 
 
-
-
-
-
-
 # PERFECT GAS FUNCTIONS =============================================================
 
 def Mcj_def(Pi, vi, Q, gamma):
     """
     
-	Mcj_def
+    Mcj_def
     Calculates the CJ deflagration Mach number in the perfect gas approximation
     
     SYNTAX
@@ -319,14 +307,14 @@ def Mcj_def(Pi, vi, Q, gamma):
     
     """
     n = (gamma**2.0-1)/gamma * (Q / (Pi*vi))
-    return ( 1 + n - ( (n + 1)**2.0 - 1 )**0.5 )**0.5
+    return (1 + n - ((n + 1)**2.0 - 1)**0.5)**0.5
     
     
 
 def perfect_gas_properties(P0, T0, mix, mech):
     """ 
     
-	perfect_gas_properties
+    perfect_gas_properties
     Uses Cantera to estimate perfect gas properties (gamma, rgas, Qcomb)
     at initial state defined by P0, T0, mix.
     
@@ -346,7 +334,7 @@ def perfect_gas_properties(P0, T0, mix, mech):
     
     """
     
-	# Set gas at standard state
+    # Set gas at standard state
     gas = ct.Solution(mech)
     gas.TPX = T0, P0, mix
 
@@ -381,7 +369,7 @@ def CJ_deflagration_perfect(P1, T1, gamma1, rgas, Qgas):
     T1 = Initial temperature (K)
     gamma1 = Specific heat ratio
     rgas = Perfect gas constant of the gas
-    Qgas = Energy of reaction ofhte gas
+    Qgas = Energy of reaction of the gas
 
     OUTPUT
     Dcj = CJ deflagration velocity
